@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitnub.com/premwut/wallet-service/server"
+	"gitnub.com/premwut/todo-service/server"
 )
 
 func main() {

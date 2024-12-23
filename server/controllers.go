@@ -2,16 +2,16 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"gitnub.com/premwut/wallet-service/database"
-	"gitnub.com/premwut/wallet-service/domain"
-	"gitnub.com/premwut/wallet-service/usecase"
+	"gitnub.com/premwut/todo-service/database"
+	"gitnub.com/premwut/todo-service/domain"
+	"gitnub.com/premwut/todo-service/usecase"
 )
 
-var InternalServerError = errors.New("Internal server error")
+var InternalServerError = errors.New("internal server error")
+var NotFoundError = errors.New("resource not found")
 
 type UserController struct {
 	userService usecase.UserService
@@ -20,7 +20,6 @@ type UserController struct {
 func NewUserController() UserController {
 	r := database.NewUserRepo()
 	service := usecase.NewUserService(r)
-	fmt.Println("[NewUserController] service:", service)
 	return UserController{
 		userService: *service,
 	}
@@ -42,4 +41,29 @@ func (controller *UserController) GetUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, user)
+}
+
+type ProjectController struct {
+	projectService usecase.ProjectService
+}
+
+func NewProjectController() ProjectController {
+	r := database.NewProjectRepository(database.Database{})
+	service := usecase.NewProjectService(r)
+	return ProjectController{
+		projectService: *service,
+	}
+}
+
+func (controller *ProjectController) getProject(c echo.Context) error {
+	var err error
+	id := c.Param("projectId")
+
+	project, err := controller.projectService.GetProject(id)
+
+	if err != nil {
+		return c.JSON(http.StatusNotFound, NotFoundError)
+	}
+
+	return c.JSON(http.StatusOK, project)
 }

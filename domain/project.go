@@ -1,6 +1,7 @@
 package domain
 
 type Project struct {
+	Id    string `json:"id"`
 	Name  string `json:"name"`
 	Owner string `json:"userId"`
 	// TODO: implement Task entity

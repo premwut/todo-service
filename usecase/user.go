@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"gitnub.com/premwut/wallet-service/domain"
+	"gitnub.com/premwut/todo-service/domain"
 )
 
 type UserRepositoryInterface interface {
-	GetUser(userId string) (domain.User, error)
+	GetUser(userId string) (*domain.User, error)
 }
 
 type UserService struct {
@@ -19,7 +19,6 @@ type UserService struct {
 
 func NewUserService(r UserRepositoryInterface) *UserService {
 	s := UserService{}
-	fmt.Println("[NewUserService] r:", r)
 	s.userRepository = r
 	return &s
 }
@@ -32,7 +31,7 @@ func (userService *UserService) GetUser(userId string) (*domain.User, error) {
 		return nil, errors.New("Internal server error")
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func (userService *UserService) TestHelloFromUserService() {

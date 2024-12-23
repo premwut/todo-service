@@ -10,5 +10,10 @@ func Start() {
 	c := NewUserController()
 	e.GET("/hello", c.HelloWorld)
 	e.GET("/user/:id", c.GetUser)
+
+	// projects
+	pc := NewProjectController()
+	e.GET("/projects/:projectId", pc.getProject)
 	e.Start(":8000")
+
 }

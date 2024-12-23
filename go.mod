@@ -1,4 +1,4 @@
-module gitnub.com/premwut/wallet-service
+module gitnub.com/premwut/todo-service
 
 go 1.23.3
 
