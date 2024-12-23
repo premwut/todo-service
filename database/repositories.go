@@ -30,18 +30,31 @@ var mockUsers = []domain.User{
 	},
 }
 
+var mockTasks = []domain.Task{
+	{
+		Id:     "1",
+		Name:   "Create project entity",
+		Status: "Created",
+	},
+	{
+		Id:     "1",
+		Name:   "Create project entity",
+		Status: "Created",
+	},
+}
+
 var mockProjects = []domain.Project{
 	{
 		Id:    "122",
 		Name:  "My first proejct",
 		Owner: "1",
-		Tasks: []string{"Create project entity", "Create project use case & controller"},
+		Tasks: mockTasks,
 	},
 	{
 		Id:    "123",
 		Name:  "My first proejct",
 		Owner: "1",
-		Tasks: []string{"Create project entity", "Create project use case & controller"},
+		Tasks: mockTasks,
 	},
 }
 
