@@ -1,2 +1,2 @@
 # Demo
-This is my first time writing Go. Just trying out to creating server with `echo` and implement clean architecture with dependencies injection
+This is my first time writing a project in Go. Just trying out to create todo app server with `echo`
