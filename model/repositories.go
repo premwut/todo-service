@@ -1,10 +1,12 @@
-package database
+package model
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"gitnub.com/premwut/todo-service/domain"
+	"gorm.io/gorm"
 )
 
 var mockUsers = []domain.User{
@@ -37,7 +39,7 @@ var mockTasks = []domain.Task{
 		Status: "Created",
 	},
 	{
-		Id:     "1",
+		Id:     "2",
 		Name:   "Create project entity",
 		Status: "Created",
 	},
@@ -46,13 +48,13 @@ var mockTasks = []domain.Task{
 var mockProjects = []domain.Project{
 	{
 		Id:    "122",
-		Name:  "My first proejct",
+		Name:  "My first project",
 		Owner: "1",
 		Tasks: mockTasks,
 	},
 	{
 		Id:    "123",
-		Name:  "My first proejct",
+		Name:  "My second project",
 		Owner: "1",
 		Tasks: mockTasks,
 	},
@@ -63,17 +65,25 @@ type Database struct {
 	projects []domain.Project
 }
 
-var db = Database{
+type DatabaseInterface[Model any] interface {
+	Create(value interface{}) *gorm.DB
+	// FindUser(id string) domain.User
+	// Find(id string) T
+	// Create(data T) T
+}
+
+var db = &Database{
 	users:    mockUsers,
 	projects: mockProjects,
 }
 
 type UserRepository struct {
 	// may have db instance here in real use case
+	db *Database
 }
 
-func NewUserRepo() UserRepository {
-	return UserRepository{}
+func NewUserRepo() *UserRepository {
+	return &UserRepository{db}
 }
 
 func (r UserRepository) GetUser(userId string) (*domain.User, error) {
@@ -84,12 +94,21 @@ func (r UserRepository) GetUser(userId string) (*domain.User, error) {
 }
 
 type ProjectRepository struct {
-	db Database
+	db DatabaseInterface[Project]
 }
 
-func NewProjectRepository(db Database) ProjectRepository {
+func NewProjectRepository(db DatabaseInterface[Project]) *ProjectRepository {
 	r := ProjectRepository{db}
-	return r
+	return &r
+}
+
+type TaskRepository struct {
+	db DatabaseInterface[Task]
+}
+
+func NewTaskRepository(db DatabaseInterface[Task]) *TaskRepository {
+	r := TaskRepository{db}
+	return &r
 }
 
 func (r ProjectRepository) Find(projectId string) (*domain.Project, error) {
@@ -109,4 +128,21 @@ func (r ProjectRepository) Find(projectId string) (*domain.Project, error) {
 	}
 
 	return project, nil
+}
+
+func (r *ProjectRepository) CreateTask(projectId string, taskName string) (domain.Task, error) {
+	project, err := r.Find(projectId)
+	if project == nil {
+		return domain.Task{}, errors.New("project not found")
+	} else if err != nil {
+		return domain.Task{}, err
+	}
+
+	taskNum := len(project.Tasks) + 1
+	newTask := domain.Task{Id: strconv.Itoa(taskNum), Name: taskName, Status: "created"}
+	project.Tasks = append(project.Tasks, newTask)
+
+	// TODO: implement actual db
+
+	return newTask, nil
 }

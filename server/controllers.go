@@ -1,13 +1,16 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"gitnub.com/premwut/todo-service/database"
 	"gitnub.com/premwut/todo-service/domain"
+	"gitnub.com/premwut/todo-service/model"
 	"gitnub.com/premwut/todo-service/usecase"
+	"gorm.io/gorm"
 )
 
 var InternalServerError = errors.New("internal server error")
@@ -18,7 +21,7 @@ type UserController struct {
 }
 
 func NewUserController() UserController {
-	r := database.NewUserRepo()
+	r := model.NewUserRepo()
 	service := usecase.NewUserService(r)
 	return UserController{
 		userService: *service,
@@ -47,12 +50,30 @@ type ProjectController struct {
 	projectService usecase.ProjectService
 }
 
-func NewProjectController() ProjectController {
-	r := database.NewProjectRepository(database.Database{})
-	service := usecase.NewProjectService(r)
+func NewProjectController(db *gorm.DB) ProjectController {
+	service := usecase.NewProjectService(db)
 	return ProjectController{
 		projectService: *service,
 	}
+}
+
+func (controller *ProjectController) createProject(c echo.Context) error {
+	var err error
+	// TODO: refactor jsonBody logic to a helper
+	jsonBody := make(map[string]string)
+	err = json.NewDecoder(c.Request().Body).Decode(&jsonBody)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	projectName := jsonBody["name"]
+	fmt.Printf("[pc.createProject] projectName: %v", projectName)
+
+	project, err := controller.projectService.CreateProject(projectName)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, project)
 }
 
 func (controller *ProjectController) getProject(c echo.Context) error {
@@ -62,8 +83,32 @@ func (controller *ProjectController) getProject(c echo.Context) error {
 	project, err := controller.projectService.GetProject(id)
 
 	if err != nil {
-		return c.JSON(http.StatusNotFound, NotFoundError)
+		return c.JSON(http.StatusNotFound, err)
 	}
 
 	return c.JSON(http.StatusOK, project)
+}
+
+type CreateTaskRequestParams struct {
+	projectId string
+}
+
+type CreateTaskRequestBody struct {
+	taskName string
+}
+
+// * route: POST /projects/:projectId/tasks
+func (controller *ProjectController) createTask(c echo.Context) error {
+	var err error
+	projectId := c.Param("projectId")
+	jsonBody := make(map[string]string)
+	err = json.NewDecoder(c.Request().Body).Decode(&jsonBody)
+	taskName := jsonBody["taskName"]
+	task, err := controller.projectService.CreateTask(projectId, taskName)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	return c.JSON(http.StatusOK, task)
 }
